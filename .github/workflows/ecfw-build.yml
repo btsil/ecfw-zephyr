@@ -13,13 +13,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: install dependencies
+    - name: Install kitware
       run: |
         echo "Install kitware"
         wget https://apt.kitware.com/kitware-archive.sh
         sudo bash kitware-archive.sh
+    - name: Install dependencies
+      run: |
         echo "Install dependencies"
         sudo apt install -y --no-install-recommends git cmake ninja-build gperf
         sudo apt install -y --no-install-recommends ccache dfu-util device-tree-compiler wget
         sudo apt install -y --no-install-recommends python3-dev python3-pip python3-setuptools python3-tk python3-wheel xz-utils file
         sudo apt install -y --no-install-recommends make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
+    - name: Checking versions - CMake 3.20.5, Python 3.8, Devicetree compiler 1.4.6
+      run: |
+        cmake --version
+        python3 --version
+        dtc --version
+    - name: Installing Zephyr and Python dependencies
+      run: |
+        if [ ! -d zephyrproject ]; then mkdir ~/zephyrproject; fi
+        sudo apt install -y python3-venv
+        python3 -m venv ~/zephyrproject/.venv
+        . ~/zephyrproject/.venv/bin/activate
+        pip install west
+        west init ~/zephyrproject
+        cd ~/zephyrproject
+        west update
+        west zephyr-export
+        pip install -r ~/zephyrproject/zephyr/scripts/requirements.txt
