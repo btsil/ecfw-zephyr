@@ -1,6 +1,7 @@
 name: EC fw build for CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "master" ]
   pull_request:
@@ -13,4 +14,12 @@ jobs:
 
     steps:
     - name: install dependencies
-      run: echo "install dependencies"
+      run: |
+        echo "Install kitware"
+        wget https://apt.kitware.com/kitware-archive.sh
+        bash kitware-archive.sh
+      #- echo "Install dependencies"
+      #- sudo apt install -y --no-install-recommends git cmake ninja-build gperf
+      #- sudo apt install -y --no-install-recommends ccache dfu-util device-tree-compiler wget
+      #- sudo apt install -y --no-install-recommends python3-dev python3-pip python3-setuptools python3-tk python3-wheel xz-utils file
+      #- sudo apt install -y --no-install-recommends make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
