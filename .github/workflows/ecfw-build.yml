@@ -55,23 +55,25 @@ jobs:
         cd zephyr-sdk-0.16.4
         ./setup.sh -h -c
 
-    - name: Installing source and checking out branches
+    - name: Installing source zephyr
       uses: actions/checkout@v2
       with:
         repository: ADIEngineering/zephyr
         ref: mec172x_azbeach_support
-        token: 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
+        token: ${{ secrets.GH_PAT }} # `GH_PAT` is a secret that contains your PAT
         path: ecfwwork/zephyr_fork
+
+    - name: Installing source ecfw
       uses: actions/checkout@v2
       with:
-        repository: btsil/ecfw-zephyr
         ref: mec172x_azbeach_zephyr_v10
         path: ecfw-zephyr
+
+    - name: Initializng west
       run: |
         cd ~
         ls
         cd zephyr_fork
-        git checkout mec172x_azbeach_zephyr_v10
         west init -l
 
     - name: Building the application...
