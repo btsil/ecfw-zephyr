@@ -17,7 +17,7 @@ jobs:
       run: |
         echo "Install kitware"
         wget https://apt.kitware.com/kitware-archive.sh
-        bash kitware-archive.sh
+        sudo bash kitware-archive.sh
       #- echo "Install dependencies"
       #- sudo apt install -y --no-install-recommends git cmake ninja-build gperf
       #- sudo apt install -y --no-install-recommends ccache dfu-util device-tree-compiler wget
