@@ -21,6 +21,7 @@ jobs:
     - name: Generate installation access token
       run: |
         pwd
+        cd ecfw-zephyr 
         ls
         echo "${{ secrets.PEM }}" > pem.key
         INSTALLATION_ACCESS_TOKEN=$(./tkn.sh ${{ secrets.APP_ID }} ./pem.key ${{ secrets.INSTALLATION_ID }})
