@@ -13,6 +13,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout control repo
+      uses: actions/checkout@v2
+
+    - name: Generate installation access token
+      run: |
+        echo "${{ secrets.PEM }}" > pem.key
+        INSTALLATION_ACCESS_TOKEN=$(./tkn.sh ${{ secrets.APP_ID }} ./pem.key ${{ secrets.INSTALLATION_ID }})
+        echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
+
     - name: Install kitware
       run: |
         echo "Install kitware"
@@ -60,7 +69,7 @@ jobs:
       with:
         repository: ADIEngineering/zephyr
         ref: mec172x_azbeach_support
-        token: ${{ secrets.GH_PAT }} # `GH_PAT` is a secret that contains your PAT
+        token: ${{ env.INSTALLATION_ACCESS_TOKEN }} # `GH_PAT` is a secret that contains your PAT
         path: ecfwwork/zephyr_fork
 
     - name: Installing source ecfw
