@@ -16,8 +16,7 @@ jobs:
     - name: Installing source ecfw
       uses: actions/checkout@v2
       with:
-        ref: mec172x_azbeach_zephyr_v10
-        path: ecfw-zephyr
+        path: ecfw-zephyr # ref: mec172x_azbeach_zephyr_v10
 
     - name: Generate installation access token
       run: |
@@ -70,7 +69,8 @@ jobs:
     - name: Installing source zephyr
       uses: actions/checkout@v2
       with:
-        repository: ADIEngineering/zephyr # ref: mec172x_azbeach_support
+        repository: ADIEngineering/zephyr 
+        ref: mec172x_azbeach_support
         token: ${{ env.INSTALLATION_ACCESS_TOKEN }} # `GH_PAT` is a secret that contains your PAT
         path: ecfwwork/zephyr_fork
 
