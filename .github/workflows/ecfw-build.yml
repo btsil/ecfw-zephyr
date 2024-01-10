@@ -21,7 +21,7 @@ jobs:
     - name: Generate installation access token
       run: |
         echo "${{ secrets.PEM }}" > pem.key
-        INSTALLATION_ACCESS_TOKEN=$(./.github/workflows/tkn.sh ${{ secrets.APP_ID }} ./pem.key ${{ secrets.INSTALLATION_ID }})
+        INSTALLATION_ACCESS_TOKEN=$(.github/workflows/tkn.sh ${{ secrets.APP_ID }} ./pem.key ${{ secrets.INSTALLATION_ID }})
         echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
 
     - name: Install kitware
