@@ -30,8 +30,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: btsil/zephyr 
-        ref: mec172x_azbeach_support
-        token: ${{ env.INSTALLATION_ACCESS_TOKEN }}
+        ref: mec172x_azbeach_support # token: ${{ env.INSTALLATION_ACCESS_TOKEN }}
         path: ecfwwork/zephyr_fork
 
     - name: Install kitware
