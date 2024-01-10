@@ -22,6 +22,7 @@ jobs:
       run: |
         cd ecfw-zephyr 
         echo "${{ secrets.PEM }}" > pem.key
+        ls -lt
         INSTALLATION_ACCESS_TOKEN=$(./tkn.sh ${{ secrets.APP_ID }} ./pem.key ${{ secrets.INSTALLATION_ID }})
         echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
 
