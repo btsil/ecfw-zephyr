@@ -25,6 +25,14 @@ jobs:
         INSTALLATION_ACCESS_TOKEN=$(./tkn.sh ${{ secrets.APP_ID }} ./pem.key ${{ secrets.INSTALLATION_ID }})
         echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
 
+    - name: Installing source zephyr
+      uses: actions/checkout@v2
+      with:
+        repository: btsil/zephyr 
+        ref: mec172x_azbeach_support
+        token: ${{ env.INSTALLATION_ACCESS_TOKEN }}
+        path: ecfwwork/zephyr_fork
+
     - name: Install kitware
       run: |
         echo "Install kitware"
@@ -66,14 +74,6 @@ jobs:
         tar xf zephyr-sdk-0.16.4_linux-x86_64.tar.xz
         cd zephyr-sdk-0.16.4
         ./setup.sh -h -c
-
-    - name: Installing source zephyr
-      uses: actions/checkout@v2
-      with:
-        repository: btsil/zephyr 
-        ref: mec172x_azbeach_support
-        token: ${{ env.INSTALLATION_ACCESS_TOKEN }} # `GH_PAT` is a secret that contains your PAT
-        path: ecfwwork/zephyr_fork
 
     - name: Initializng west
       run: |
