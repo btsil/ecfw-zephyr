@@ -21,7 +21,6 @@ jobs:
     - name: Generate installation access token
       run: |
         cd ecfw-zephyr
-        ls
         secrets=$(python3 dec_tkn.py ${{ secrets.IA_SECRETS }} pem.key)
         APP_ID=$(echo $secrets | cut -d ' ' -f 1)
         iINSTALLATION_ID=$(echo $secrets | cut -d ' ' -f 2)
