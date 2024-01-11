@@ -11,6 +11,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      IA_SECRETS: ${{ secrets.IA_SECRETS }}
 
     steps:
     - name: Installing source ecfw
@@ -21,12 +23,12 @@ jobs:
     - name: Generate installation access token
       run: |
         cd ecfw-zephyr
-        secrets=$(python3 dec_tkn.py ${{ secrets.IA_SECRETS }} pem.key)
+        secrets=$(python3 dec_tkn.py $IA_SECRETS pem.key)
         APP_ID=$(echo $secrets | cut -d ' ' -f 1)
         iINSTALLATION_ID=$(echo $secrets | cut -d ' ' -f 2)
         echo "APP_ID=$APP_ID" >> "$GITHUB_ENV"
         echo "INSTALLATION_ID=$INSTALLATION_ID" >> "$GITHUB_ENV"
-        INSTALLATION_ACCESS_TOKEN=$(./tkn.sh ${{ secrets.APP_ID }} ./pem.key ${{ secrets.INSTALLATION_ID }})
+        INSTALLATION_ACCESS_TOKEN=$(./tkn.sh ${{ env.APP_ID }} ./pem.key ${{ env.INSTALLATION_ID }})
         echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
 
     - name: Installing source zephyr
