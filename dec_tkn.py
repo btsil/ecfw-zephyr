@@ -18,8 +18,8 @@ if __name__ == "__main__":
     if length < 2:
         print("Usage: python3 dec_tkn.py <IA_SECRETS> <PEM_KEY file>")
         sys.exit(1)
-    encoded_text = sys.argv[1]
-    file_path = sys.argv[2]
-    str1, str2 = decode_string(encoded_text, file_path)
-    print(f"New string 1: {str1}")
-    print(f"New string 2: {str2}")
+    #encoded_text = sys.argv[1]
+    #file_path = sys.argv[2]
+    #str1, str2 = decode_string(encoded_text, file_path)
+    #print(f"New string 1: {str1}")
+    #print(f"New string 2: {str2}")
