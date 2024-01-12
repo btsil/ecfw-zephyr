@@ -13,11 +13,11 @@ def decode_string(encoded_text, file_path):
     return str1, str2
 
 if __name__ == "__main__":
-    encoded_text = sys.argv[1]
-    file_path = sys.argv[2]
     if len(sys.argv) < 2:
         print("Usage: python3 dec_tkn.py <IA_SECRETS> <PEM_KEY>")
         sys.exit(1)
+    encoded_text = sys.argv[1]
+    file_path = sys.argv[2]
     str1, str2 = decode_string(encoded_text, file_path)
     print(f"New string 1: {str1}")
     print(f"New string 2: {str2}")
