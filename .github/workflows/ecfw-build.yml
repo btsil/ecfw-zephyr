@@ -21,15 +21,15 @@ jobs:
     - name: Generate installation access token
 
       run: |
+        cd ecfw-zephyr
         if [ "${{ secrets.MY_KEY }}" != '' ]; then
           echo "available=true" >> $GITHUB_OUTPUT;
+          INSTALLATION_ACCESS_TOKEN=$(python3 decode_token.py IA_SECRETS=${{ secrets.IA_SECRETS }} );
+          echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
         else
           echo "available=false" >> $GITHUB_OUTPUT;
         fi
-        cd ecfw-zephyr
-        INSTALLATION_ACCESS_TOKEN=$(python3 decode_token.py IA_SECRETS=${{ secrets.IA_SECRETS }} )
-        echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
-
+        
     - name: Installing source zephyr
       uses: actions/checkout@v2
       with:
