@@ -4,6 +4,7 @@ import sys
 import time
 import jwt
 import requests
+import os
 
 def decode_token(token_file):
     #with open(token_file, 'r') as file:
@@ -37,6 +38,6 @@ if __name__ == "__main__":
     if len(sys.argv) < 1:
         print("Usage: python3 dec_tkn.py <IA_SECRETS> ")
         sys.exit(1)
-    token_file = sys.argv[1]
+    token_file = os.environment[sys.argv[1]]
     iat = decode_token(token_file)
     print(iat)
