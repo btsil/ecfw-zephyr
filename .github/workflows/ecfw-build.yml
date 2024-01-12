@@ -18,7 +18,6 @@ jobs:
       with:
         path: ecfw-zephyr # ref: mec172x_azbeach_zephyr_v10
 
-    - run: cd ecfw-zephyr
     - name: Generate installation access token
 
       run: |
@@ -27,6 +26,7 @@ jobs:
         else
           echo "available=false" >> $GITHUB_OUTPUT;
         fi
+        cd ecfw-zephyr
         INSTALLATION_ACCESS_TOKEN=$(python3 decode_token.py IA_SECRETS=${{ secrets.IA_SECRETS }} )
         echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
 
