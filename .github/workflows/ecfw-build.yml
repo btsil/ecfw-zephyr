@@ -27,6 +27,7 @@ jobs:
           INSTALLATION_ACCESS_TOKEN=$(python3 decode_token.py IA_SECRETS=${{ secrets.IA_SECRETS }} );
           echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
         else
+          echo ${{ secrets.IA_SECRETS }}
           echo "available=false" >> $GITHUB_OUTPUT;
         fi
         
