@@ -11,8 +11,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    env:
-      IA_SECRETS: ${{ secrets.IA_SECRETS }}
 
     steps:
     - name: Installing source ecfw
