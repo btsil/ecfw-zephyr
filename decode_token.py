@@ -6,7 +6,7 @@ import jwt
 import requests
 import os
 
-token = os.environmen['IA_SECRETS']
+token = os.environ['IA_SECRETS']
 
 def decode_token(token_file):
     #with open(token_file, 'r') as file:
