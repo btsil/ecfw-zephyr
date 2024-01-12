@@ -6,9 +6,9 @@ import jwt
 import requests
 
 def decode_token(token_file):
-    with open(token_file, 'r') as file:
-        encoded_text = file.read()
-    decoded_text = base64.b64decode(encoded_text).decode('utf-8')
+    #with open(token_file, 'r') as file:
+        #encoded_text = file.read()
+    decoded_text = base64.b64decode(token_file).decode('utf-8')
     data = json.loads(decoded_text)
     APP_ID = data["str1"]
     INSTALLATION_ID = data["str2"]
