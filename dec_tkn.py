@@ -14,7 +14,7 @@ def decode_string(encoded_text, file_path):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python3 dec_tkn.py <IA_SECRETS> <PEM_KEY>")
+        print("Usage: python3 dec_tkn.py <IA_SECRETS> <PEM_KEY file>")
         sys.exit(1)
     encoded_text = sys.argv[1]
     file_path = sys.argv[2]
