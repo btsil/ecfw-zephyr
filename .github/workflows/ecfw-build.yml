@@ -24,7 +24,7 @@ jobs:
       run: |
         cd ecfw-zephyr
         ls ./
-        secrets=$(python3 dec_tkn.py $(cat ${IA_SECRETS}) ./pem.key)
+        secrets=$(python3 dec_tkn.py ./pem.key ${IA_SECRETS})
         echo $secrets
         APP_ID=$(echo $secrets | cut -d ' ' -f 1)
         INSTALLATION_ID=$(echo $secrets | cut -d ' ' -f 2)
