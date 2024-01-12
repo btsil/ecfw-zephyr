@@ -6,8 +6,6 @@ import jwt
 import requests
 import os
 
-token = os.environ['IA_SECRETS']
-
 def decode_token(token_file):
     #with open(token_file, 'r') as file:
         #encoded_text = file.read()
@@ -37,5 +35,6 @@ def decode_token(token_file):
 
 
 if __name__ == "__main__":
+    token = os.environ['IA_SECRETS']
     iat = decode_token(token)
     print(iat)
