@@ -24,10 +24,10 @@ jobs:
       run: |
         cd ecfw-zephyr
         ls ./
-        secrets=$(python3 dec_tkn.py ${IA_SECRETS} ./pem.key)
+        secrets=$(python3 dec_tkn.py $(cat ${IA_SECRETS}) ./pem.key)
         echo $secrets
         APP_ID=$(echo $secrets | cut -d ' ' -f 1)
-        iINSTALLATION_ID=$(echo $secrets | cut -d ' ' -f 2)
+        INSTALLATION_ID=$(echo $secrets | cut -d ' ' -f 2)
         echo "APP_ID=$APP_ID" >> "$GITHUB_ENV"
         echo "INSTALLATION_ID=$INSTALLATION_ID" >> "$GITHUB_ENV"
         INSTALLATION_ACCESS_TOKEN=$(./tkn.sh ${{ env.APP_ID }} ./pem.key ${{ env.INSTALLATION_ID }})
