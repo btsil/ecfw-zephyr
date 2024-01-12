@@ -23,13 +23,8 @@ jobs:
     - name: Generate installation access token
       run: |
         cd ecfw-zephyr
-        ia_secret=$(echo "${{ secrets.IA_SECRETS }}")
-        secrets=$(python3 dec_tkn.py ./pem.key ${{ secrets.IA_SECRETS }})
-        APP_ID=$(echo $secrets | cut -d ' ' -f 1)
-        INSTALLATION_ID=$(echo $secrets | cut -d ' ' -f 2)
-        echo "APP_ID=$APP_ID" >> "$GITHUB_ENV"
-        echo "INSTALLATION_ID=$INSTALLATION_ID" >> "$GITHUB_ENV"
-        INSTALLATION_ACCESS_TOKEN=$(./tkn.sh ${{ env.APP_ID }} ./pem.key ${{ env.INSTALLATION_ID }})
+        echo "${{ secrets.IA_SECRETS }}" > ia_file
+        INSTALLATION_ACCESS_TOKEN=$(python3 decode_token.py ia_file)
         echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
 
     - name: Installing source zephyr
