@@ -17,7 +17,7 @@ jobs:
     - name: Installing source ecfw
       uses: actions/checkout@v2
       with:
-        path: ~/ # ref: mec172x_azbeach_zephyr_v1
+        path: side1 # ref: mec172x_azbeach_zephyr_v1
 
     - name: Generate installation access token
       id: ia_token
@@ -26,8 +26,8 @@ jobs:
         cd ~/
         pwd
         ls
-        echo "change to ~/work/ecfw-zephyr/"
-        cd ~/work/ecfw-zephyr/
+        echo "change to ~/work"
+        cd ~/work
         ls
         echo "change to ~/work/ecfw-zephyr/ecfw-zephyr"
         cd ~/work/ecfw-zephyr/ecfw-zephyr
