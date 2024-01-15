@@ -29,7 +29,7 @@ jobs:
       with:
         repository: btsil/zephyr 
         token: "${{ steps.ia_token.outputs.IA_TOKEN }}"
-        path: ecfwwork/zephyr_fork
+        path: ~/work/ecfwwork/zephyr_fork
 
     - name: check filesystem
       run: |
@@ -38,7 +38,7 @@ jobs:
         ls
         cd ~/work/ecfw-zephyr
         ls
-        cd ~/work/zephyr
+        cd ~/work/ecfwwork
         ls
 
     - name: Install kitware
