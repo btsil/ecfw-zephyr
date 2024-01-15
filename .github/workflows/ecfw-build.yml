@@ -27,9 +27,6 @@ jobs:
         cd .github/workflows
         ls
         echo IA_TOKEN=$(python3 decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
-        
-    - name: workspace dir
-      run: echo $GITHUB_WORKSPACE
 
     - name: Installing source zephyr
       uses: actions/checkout@v4
@@ -40,13 +37,8 @@ jobs:
 
     - name: check filesystem
       run: |
-        echo $GITHUB_WORKSPACE
-        cd ~/work
-        pwd
-        ls
-        cd ~/work/ecfw-zephyr
-        ls
-        cd ~/work/ecfwwork
+        echo "change to $GITHUB_WORKSPACE/ecfwwork"
+        cd $GITHUB_WORKSPACE/ecfwwork
         ls
 
     - name: Install kitware
