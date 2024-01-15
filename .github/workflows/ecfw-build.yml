@@ -11,7 +11,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    env:
+      GITHUB_WORKSPACE: /home/runner/work
     steps:
     - name: Installing source ecfw
       uses: actions/checkout@v2
@@ -29,7 +30,7 @@ jobs:
       with:
         repository: btsil/zephyr 
         token: "${{ steps.ia_token.outputs.IA_TOKEN }}"
-        path: ~/work/ecfwwork/zephyr_fork
+        path: ecfwwork/zephyr_fork
 
     - name: check filesystem
       run: |
