@@ -35,6 +35,7 @@ def decode_token(token_file):
 
 
 if __name__ == "__main__":
-    token = os.environ['IA_SECRETS']
-    iat = decode_token(token)
-    print(iat)
+    #token = os.environ['IA_SECRETS']
+    token = sys.argv[1]
+    access_token = decode_token(token)
+    print(access_token)
