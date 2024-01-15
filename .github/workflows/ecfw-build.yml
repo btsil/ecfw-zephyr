@@ -30,7 +30,9 @@ jobs:
         repository: btsil/zephyr 
         token: "${{ steps.ia_token.outputs.IA_TOKEN }}"
         path: ecfwwork/zephyr_fork
-    - run: |
+
+    - name: check filesystem
+      run: |
         cd ~/work
         pwd
         ls
