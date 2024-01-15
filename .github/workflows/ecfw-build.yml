@@ -29,8 +29,8 @@ jobs:
         echo "change to ~/work/ecfw-zephyr/"
         cd ~/work/ecfw-zephyr/
         ls
-        echo "change to ~/work/ecfw-zephyr/"
-        cd ~/work/ecfw-zephyr/
+        echo "change to ~/work/ecfw-zephyr/ecfw-zephyr"
+        cd ~/work/ecfw-zephyr/ecfw-zephyr
         ls
         echo "change to ~/work/ecfw-zephyr/ecfw-zephyr"
         cd ~/work/ecfw-zephyr/ecfw-zephyr/.github/workflows
