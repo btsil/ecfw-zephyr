@@ -22,6 +22,8 @@ jobs:
     - name: Generate installation access token
       id: ia_token
       run: |
+        echo "workspace"
+        echo $GITHUB_WORKSPACE
         echo "change to ~/"
         cd ~/
         pwd
