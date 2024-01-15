@@ -44,7 +44,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: btsil/zephyr 
-        token: ${{ secrets.IAT }}
+        token: $IA_TOKEN
         path: ecfwwork/zephyr_fork
 
     - name: Install kitware
