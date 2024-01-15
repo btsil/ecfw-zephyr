@@ -5,10 +5,10 @@
  */
 
 #include <errno.h>
-#include <zephyr.h>
-#include <device.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
 #include <soc.h>
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 #include "sci.h"
 #include "smc.h"
 #include "smchost.h"
@@ -23,6 +23,7 @@ K_MSGQ_DEFINE(sci_msgq, sizeof(uint8_t), SCIQ_SIZE, sizeof(uint8_t));
 
 void sci_queue_init(void)
 {
+	LOG_DBG("sci_enabled flag set");
 	g_acpi_state_flags.sci_enabled = 1;
 }
 
@@ -45,7 +46,7 @@ void generate_sci(void)
 
 	if ((!g_acpi_state_flags.sci_enabled) ||
 	    (!g_acpi_state_flags.acpi_mode)) {
-		LOG_DBG("SCI is disabled");
+		LOG_DBG("SCI is disabled, acpi_mode: %d, sci_enabled %d",g_acpi_state_flags.acpi_mode, g_acpi_state_flags.sci_enabled);
 		return;
 	}
 
@@ -55,7 +56,9 @@ void generate_sci(void)
 		if (ret) {
 			LOG_WRN("SCI failed");
 		}
-		k_busy_wait(100);
+#if 0 // XXX JJD, driver handles the k_busy_wait(100)!
+		k_busy_wait(100); 
+#endif
 
 		ret = espihub_send_vw(ESPI_VWIRE_SIGNAL_SCI, ESPIHUB_VW_HIGH);
 		if (ret) {

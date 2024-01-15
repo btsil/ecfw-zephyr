@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <zephyr.h>
-#include <logging/log.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 #include "thermalmgmt.h"
 #include "fan.h"
 #include "thermal_sensor.h"
@@ -23,6 +23,7 @@
 
 LOG_MODULE_REGISTER(thermal, CONFIG_THERMAL_MGMT_LOG_LEVEL);
 
+#define FAN_CPU FAN_LEFT
 /**
  * DTT threshold default values upon init in degree celsius:
  * - low trip temp = 95c
@@ -80,10 +81,49 @@ static bool peci_initialized;
 /* Using module property, before introducing straps handler */
 static bool fan_override;
 static bool bios_fan_override;
+static bool ec_fan_control;
 static uint8_t bios_fan_speed;
 static uint8_t fan_duty_cycle[FAN_DEV_TOTAL];
 static bool fan_duty_cycle_change;
 static int cpu_temp;
+
+struct fan_lookup {
+	int16_t temp;
+	uint8_t duty_cycle;
+};
+
+static const struct fan_lookup fan_lookup_tbl[] = {
+	{15, 15},
+	{35, 25},
+	{42, 40},
+	{49, 55},
+	{56, 70},
+	{63, 80},
+	{70, 90},
+	{75, 100}
+};
+
+static uint8_t get_fan_speed_for_temp(int16_t temp)
+{
+	int idx;
+	uint8_t speed = 100;
+
+	if (temp < fan_lookup_tbl[0].temp) {
+		speed = 0;
+		return speed;
+	} else if (temp >= fan_lookup_tbl[ARRAY_SIZE(fan_lookup_tbl)-1].temp) {
+		speed = 100;
+		return speed;
+	} else {
+		for (idx = 0; idx < ARRAY_SIZE(fan_lookup_tbl); idx++) {
+			if (temp >= fan_lookup_tbl[idx].temp) {
+				speed = fan_lookup_tbl[idx].duty_cycle;
+//				break;
+			}
+		}
+	}
+	return speed;
+}
 
 void host_update_crit_temp(uint8_t crit_temp)
 {
@@ -129,7 +169,11 @@ void sys_therm_sensor_trip(void)
 
 		struct dtt_threshold *thrd = &therm_sensor_tbl[idx].thrd;
 		/* Current sensor temperature */
+#ifdef CONFIG_BOARD_MEC172X_AZBEACH
+		int16_t snstemp = adc_temp_val[idx];
+#else
 		int16_t snstemp = adc_temp_val[therm_sensor_tbl[idx].adc_ch];
+#endif
 		bool tripped;
 		int16_t triplimit;
 		uint8_t old_status = thrd->status;
@@ -230,12 +274,16 @@ static void init_fans(void)
 	}
 
 	fan_duty_cycle[FAN_CPU] = CONFIG_THERMAL_FAN_OVERRIDE_VALUE;
+#ifdef CONFIG_BOARD_MEC172X_AZBEACH
+	fan_duty_cycle[FAN_RIGHT] = CONFIG_THERMAL_FAN_OVERRIDE_VALUE;
+#endif
 	fan_duty_cycle_change = 1;
+
 }
 
 static void init_therm_sensors(void)
 {
-	uint8_t adc_ch_bits = 0;
+	uint32_t adc_ch_bits = 0;		/* MEC172X has > 8 sensors */
 
 	board_therm_sensor_tbl_init(&max_adc_sensors, &therm_sensor_tbl);
 
@@ -271,6 +319,15 @@ bool is_fan_controlled_by_host(void)
 	}
 
 	return 1;
+}
+
+bool is_fan_controlled_by_ec(void)
+{
+	if (ec_fan_control) {
+		return 1;
+	}
+
+	return 0;
 }
 
 void host_set_bios_fan_override(bool en, uint8_t speed)
@@ -313,14 +370,21 @@ static void manage_fan(void)
 	/* Enable power to fan when system is in S0 and not in CS */
 	fan_power_set(true);
 
-	if (!is_fan_controlled_by_host()) {
+	if (!is_fan_controlled_by_host() || is_fan_controlled_by_ec()) {
 		/* EC Self control fan based on CPU thermal info */
-		uint8_t cpu_fan_speed = GET_FAN_SPEED_FOR_TEMP(cpu_temp);
-
+//		uint8_t cpu_fan_speed = GET_FAN_SPEED_FOR_TEMP(cpu_temp);
+		uint8_t cpu_fan_speed = get_fan_speed_for_temp(adc_temp_val[3]);
+		LOG_INF("%s: board CPU temp: %d, setting duty cycle to %d", __func__,  adc_temp_val[3], cpu_fan_speed);
 		if (fan_duty_cycle[FAN_CPU] != cpu_fan_speed) {
 			fan_duty_cycle[FAN_CPU] = cpu_fan_speed;
 			fan_duty_cycle_change = 1;
 		}
+#ifdef CONFIG_BOARD_MEC172X_AZBEACH
+		if (fan_duty_cycle[FAN_RIGHT] != cpu_fan_speed) {
+			fan_duty_cycle[FAN_RIGHT] = cpu_fan_speed;
+			fan_duty_cycle_change = 1;
+		}
+#endif
 	}
 
 	/* HW/KConfig override takes precedence over every control method
@@ -328,6 +392,9 @@ static void manage_fan(void)
 	 */
 	if (fan_override) {
 		fan_duty_cycle[FAN_CPU] = CONFIG_THERMAL_FAN_OVERRIDE_VALUE;
+#ifdef CONFIG_BOARD_MEC172X_AZBEACH
+		fan_duty_cycle[FAN_RIGHT] = CONFIG_THERMAL_FAN_OVERRIDE_VALUE;
+#endif
 		fan_duty_cycle_change = 1;
 	}
 
@@ -344,6 +411,7 @@ static void manage_fan(void)
 
 		fan_read_rpm(idx, &rpm);
 		smc_update_fan_tach(idx, rpm);
+		smc_update_fan_pwm(idx, fan_duty_cycle[idx]); /* store fan duty cycle for hwmon */
 	}
 
 	/* EC assumes OS is hung/BSOD occurred and takes override actions
@@ -377,7 +445,11 @@ static void manage_thermal_sensors(void)
 	for (uint8_t idx = 0; idx < max_adc_sensors; idx++) {
 		smc_update_thermal_sensor(
 			therm_sensor_tbl[idx].acpi_loc,
+#if CONFIG_BOARD_MEC172X_AZBEACH
+			adc_temp_val[idx]);
+#else
 			adc_temp_val[therm_sensor_tbl[idx].adc_ch]);
+#endif
 	}
 
 	sys_therm_sensor_trip();
@@ -521,6 +593,10 @@ void thermalmgmt_thread(void *p1, void *p2, void *p3)
 		peci_initialized = true;
 	}
 
+#ifdef CONFIG_EC_FAN_CONTROL
+	ec_fan_control = 1;
+#endif
+	
 	while (true) {
 		/* Each thread is aware of CS
 		 * Thread uses different sleep time during CS

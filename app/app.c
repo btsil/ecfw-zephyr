@@ -5,11 +5,11 @@
  */
 
 #include <errno.h>
-#include <zephyr.h>
-#include <device.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
 #include <soc.h>
-#include <drivers/espi.h>
-#include <logging/log.h>
+#include <zephyr/drivers/espi.h>
+#include <zephyr/logging/log.h>
 #include "board_config.h"
 #include "espi_hub.h"
 #include "pwrplane.h"
@@ -17,7 +17,7 @@
 #include "softstrap.h"
 LOG_MODULE_REGISTER(ecfw, CONFIG_EC_LOG_LEVEL);
 
-void main(void)
+int main(void)
 {
 	int ret;
 
@@ -39,13 +39,13 @@ void main(void)
 	ret = espihub_init();
 	if (ret) {
 		LOG_ERR("Failed to init espi %d", ret);
-		return;
+		return ret;
 	}
 
 	ret = board_init();
 	if (ret) {
 		LOG_ERR("Failed to init board %d", ret);
-		return;
+		return ret;
 	}
 
 	strap_init();
@@ -54,4 +54,6 @@ void main(void)
 	while (true) {
 		k_msleep(2100);
 	}
+
+	return ret;
 }

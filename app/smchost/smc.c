@@ -5,18 +5,23 @@
  */
 
 #include <errno.h>
-#include <zephyr.h>
-#include <device.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
 #include <soc.h>
 #include "gpio_ec.h"
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 #include "smc.h"
 #include "sci.h"
 #include "smchost.h"
 #include "system.h"
 #include "acpi.h"
 #include "board_config.h"
+#ifdef CONFIG_THERMAL_MANAGEMENT
 #include "fan.h"
+#endif
+#ifdef CONFIG_THERMAL_MANAGEMENT_V2
+#include "rpmfan.h"
+#endif
 #include "scicodes.h"
 
 LOG_MODULE_REGISTER(smc, CONFIG_SMCHOST_LOG_LEVEL);
@@ -35,7 +40,7 @@ static const bool acpi_tbl_attr[256] = {
 	ACPI_ATTR_READ_ONLY,
 
 	/* [3 / 3] struct acpi_status_flags acpi_flags; */
-	ACPI_ATTR_READ_ONLY,
+	ACPI_ATTR_READ_WRITE,
 
 	/* [4 / 4] uint8_t acpi_smb_buffer[40]; */
 	ACPI_ATTR_READ_WRITE,
@@ -208,10 +213,10 @@ static const bool acpi_tbl_attr[256] = {
 	/* [60 / 3C] uint8_t acpi_lux_h; */
 	ACPI_ATTR_READ_ONLY,
 
-	/* [61 / 3D] uint8_t acpi_als_raw_ch0; */
+	/* [61 / 3D] uint8_t acpi_fan1_pwm; */
 	ACPI_ATTR_READ_ONLY,
 
-	/* [62 / 3E] uint8_t acpi_als_raw_ch1; */
+	/* [62 / 3E] uint8_t acpi_fan2_pwm; */
 	ACPI_ATTR_READ_ONLY,
 
 	/* [63 / 3F] uint8_t acpi_new_card_dt_st; */
@@ -256,8 +261,8 @@ static const bool acpi_tbl_attr[256] = {
 	/* [76 / 4C] uint8_t acpi_system_pwr_h; */
 	ACPI_ATTR_READ_ONLY,
 
-	/* [77 / 4D] uint8_t free1; */
-	ACPI_ATTR_READ_ONLY,
+	/* [77 / 4D] uint8_t acpi_rst_btn_en; */
+	ACPI_ATTR_READ_WRITE,
 
 	/* [78 / 4E] struct acpi_power_source acpi_pwr_src; */
 	ACPI_ATTR_READ_WRITE,
@@ -376,10 +381,10 @@ static const bool acpi_tbl_attr[256] = {
 	/* [116 / 74] uint8_t acpi_cpu_fan_rpm_h; */
 	ACPI_ATTR_READ_ONLY,
 
-	/* [117 / 75] uint8_t acpi_apkt_lsb; */
+	/* [117 / 75] uint8_t acpi_fan2_rpm_l; */
 	ACPI_ATTR_READ_ONLY,
 
-	/* [118 / 76] uint8_t acpi_apkt_msb; */
+	/* [118 / 76] uint8_t acpi_fan2_rpm_h; */
 	ACPI_ATTR_READ_ONLY,
 
 	/* [119 / 77] uint8_t acpi_device_id; */
@@ -631,67 +636,67 @@ static const bool acpi_tbl_attr[256] = {
 	/* [201 / C9] uint8_t acpi_dis_btn_sci; */
 	ACPI_ATTR_READ_WRITE,
 
-	/* [202 / CA] uint8_t acpi_unused_v[7]; */
-	ACPI_ATTR_READ_ONLY,
+	/* [202 / CA] uint8_t acpi_led_index; */
+	ACPI_ATTR_READ_WRITE,
 
-	/* [203 / CB]  */
-	ACPI_ATTR_READ_ONLY,
+	/* [203 / CB] uint16_t acpi_led_value_l */
+	ACPI_ATTR_READ_WRITE,
 
-	/* [204 / CC]  */
-	ACPI_ATTR_READ_ONLY,
+	/* [204 / CC] */
+	ACPI_ATTR_READ_WRITE,
 
-	/* [205 / CD]  */
-	ACPI_ATTR_READ_ONLY,
+	/* [205 / CD] uint16_t acpi_led_value_h */
+	ACPI_ATTR_READ_WRITE,
 
 	/* [206 / CE]  */
-	ACPI_ATTR_READ_ONLY,
+	ACPI_ATTR_READ_WRITE,
 
-	/* [207 / CF]  */
-	ACPI_ATTR_READ_ONLY,
+	/* [207 / CF] uint8_t acpi_led_brightness[16] */
+	ACPI_ATTR_READ_WRITE,
 
 	/* [208 / D0]  */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [209 / D1] uint8_t acpi_bat_1_design_cap_l; */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [210 / D2] uint8_t acpi_bat_1_design_cap_h; */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [211 / D3] uint8_t acpi_bat0_design_v_l; */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [212 / D4] uint8_t acpi_bat0_design_v_h; */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [213 / D5] uint8_t acpi_bat1_design_v_l; */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [214 / D6] uint8_t acpi_bat1_design_v_h; */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [215 / D7] uint8_t acpi_bat0_pmax_L; */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [216 / D8] uint8_t acpi_bat0_pmax_H; */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [217 / D9] uint8_t acpi_bat_1_pmax_L; */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [218 / DA] uint8_t acpi_bat_1_pmax_H; */
-	ACPI_ATTR_READ_ONLY,
-
-	/* [219 / DB] uint8_t batt_threshold; */
 	ACPI_ATTR_READ_WRITE,
 
-	/* [220 / DC] uint8_t batt_trip_point_lsb; */
+	/* [209 / D1] */
 	ACPI_ATTR_READ_WRITE,
 
-	/* [221 / DD] uint8_t batt_trip_point_msb; */
+	/* [210 / D2] */
 	ACPI_ATTR_READ_WRITE,
 
-	/* [222 / DE] uint8_t kb_bklt_pwm_duty; */
+	/* [211 / D3] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [212 / D4] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [213 / D5] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [214 / D6] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [215 / D7] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [216 / D8] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [217 / D9] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [218 / DA] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [219 / DB] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [220 / DC] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [221 / DD] */
+	ACPI_ATTR_READ_WRITE,
+
+	/* [222 / DE] */
 	ACPI_ATTR_READ_WRITE,
 
 	/* [223 / DF] uint8_t batt_chrg_lmt_lsb; */
@@ -721,8 +726,8 @@ static const bool acpi_tbl_attr[256] = {
 	/* [231 / E7] uint8_t cas_hotkey; */
 	ACPI_ATTR_READ_ONLY,
 
-	/* [232 / E8] uint8_t acpi_pmic_rw; */
-	ACPI_ATTR_READ_ONLY,
+	/* [232 / E8] uint8_t acpi_host_gpio; */
+	ACPI_ATTR_READ_WRITE,
 
 	/* [233 / E9] uint8_t fast_charge_capable; */
 	ACPI_ATTR_READ_WRITE,
@@ -820,6 +825,9 @@ void smc_update_thermal_sensor(enum acpi_thrm_sens_idx idx, int16_t temp)
 		g_acpi_tbl.acpi_sen1 = temp;
 		break;
 
+#if CONFIG_BOARD_MEC172X_AZBEACH
+	case ACPI_THRM_SEN_EXTCPU:
+#endif
 	case ACPI_THRM_SEN_SKIN:
 		g_acpi_tbl.acpi_sen2 = temp;
 		break;
@@ -859,14 +867,39 @@ void smc_update_pch_dts_temperature(int temp)
 void smc_update_fan_tach(uint8_t fan_idx, uint16_t rpm)
 {
 	switch (fan_idx) {
+
+	case FAN_LEFT:
+		g_acpi_tbl.acpi_cpu_fan_rpm = rpm;
+		break;
+	case FAN_RIGHT:
+		g_acpi_tbl.acpi_fan2_fan_rpm = rpm;
+		break;
+#if 0
 	case FAN_CPU:
 		g_acpi_tbl.acpi_cpu_fan_rpm = rpm;
 		break;
 
 	case FAN_REAR:
 	case FAN_GFX:
+#endif
 	default:
 		LOG_WRN("Missing acpi fields for fan %d", fan_idx);
+		break;
+
+	}
+}
+
+void smc_update_fan_pwm(uint8_t fan_idx, uint8_t pwm)
+{
+	switch (fan_idx) {
+	
+	case FAN_LEFT:
+		g_acpi_tbl.acpi_fan1_pwm = pwm;
+		break;
+	case FAN_RIGHT:
+		g_acpi_tbl.acpi_fan2_pwm = pwm;
+		break;
+	default:
 		break;
 	}
 }

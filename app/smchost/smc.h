@@ -22,6 +22,7 @@ enum acpi_thrm_sens_idx {
 	ACPI_THRM_SEN_AMBIENT,
 	ACPI_THRM_SEN_VR,
 	ACPI_THRM_SEN_DDR,
+	ACPI_THRM_SEN_EXTCPU,
 	ACPI_THRM_SEN_TOTAL,
 	ACPI_THERM_SEN_UNDEF,
 };
@@ -83,6 +84,14 @@ void smc_update_thermal_sensor(enum acpi_thrm_sens_idx idx, int16_t temp);
  * @param rpm rotation per minunte value of the fan.
  */
 void smc_update_fan_tach(uint8_t fan_idx, uint16_t rpm);
+
+/**
+ * @brief Update the fan pwm (duty cycle) value for given fan device.
+ *
+ * @param fan_idx fan device index.
+ * @param pwm duty cycle value of the fan.
+ */
+void smc_update_fan_pwm(uint8_t fan_idx, uint8_t pwm);
 
 /**
  * @brief Update thermal sensor trip status.

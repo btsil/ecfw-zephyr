@@ -33,7 +33,7 @@ struct acpi_status_flags {
 struct acpi_status2_flags {
 	uint8_t pcie_docked:1;
 	uint8_t pcie_pwr_down:1;
-	uint8_t exp_card_prsnt:1;
+	uint8_t rst_btn:1;
 	uint8_t pwr_btn:1;
 	uint8_t vb_sw_closed:1;
 	uint8_t dimm_ts:1;
@@ -73,6 +73,12 @@ struct acpi_hid_btn_sci {
 	uint8_t vol_down_en_dis:1;
 	uint8_t rot_lock_en_dis:1;
 	uint8_t rsvd0:3;
+};
+
+struct acpi_hw_ctl_flags {
+	uint8_t rst_btn_en:1;
+	uint8_t fan_en:1;
+	uint8_t :6;
 };
 
 struct acpi_tbl {
@@ -118,10 +124,10 @@ struct acpi_tbl {
 	uint8_t acpi_host_command;
 	/* [59/3B] ALS Lux word */
 	uint16_t acpi_lux;
-	/* [61/3D] ALS Ch0 raw value */
-	uint8_t acpi_als_raw_ch0;
-	/* [62/3E] ALS Ch1 raw value */
-	uint8_t acpi_als_raw_ch1;
+	/* [61/3D] FAN1 PWM current value */
+	uint8_t acpi_fan1_pwm;
+	/* [62/3E] FAN2 PWM current value */
+	uint8_t acpi_fan2_pwm;
 	/* [63/3F] New card detect bits */
 	uint8_t acpi_new_card_dt_st;
 	/* [64/40] Peripheral control bits */
@@ -143,7 +149,7 @@ struct acpi_tbl {
 	/* [75/4B] System power in 0.01 W */
 	uint16_t acpi_system_pwr;
 	/* [77/4D] */
-	uint8_t free1;
+	struct acpi_hw_ctl_flags hw_en;
 	/* [78/4E] ACPI power source */
 	struct acpi_power_source acpi_pwr_src;
 	/* [80/50] Select thermal sensor */
@@ -184,10 +190,10 @@ struct acpi_tbl {
 	uint16_t acpi_prop;
 	/* [113/71] maximum (peak) TypeC adapter power output in mW */
 	uint16_t acpi_apkp;
-	/* [115/73] CPU fan speed */
+	/* [115/73] FAN1 (CPU) fan speed */
 	uint16_t acpi_cpu_fan_rpm;
-	/* [117/75] Max time the DC Barrel can maintain peak power in ms */
-	uint16_t acpi_apkt;
+	/* [117/75] FAN2 fan speed */
+	uint16_t acpi_fan2_fan_rpm;
 	/* [119/77] ETM DeviceID and sys time */
 	uint8_t acpi_device_id;
 	/* [120/78] ACPI Concept stuff flags. */
@@ -265,24 +271,14 @@ struct acpi_tbl {
 	uint8_t acpi_dev_pwr_cntrl;
 	/* [201/C9] button SCIs enable/disable offset */
 	struct acpi_hid_btn_sci acpi_btn_cntrl;
-	/* [202/CA] */
-	uint8_t acpi_unused_v[7];
-	/* [209/D1] Battery B design capacity in mW */
-	uint16_t acpi_bat1_design_cap;
-	/* [211/D3] Battery A design capacity in mW */
-	uint16_t acpi_bat0_design_v;
-	/* [213/D5] Battery B design voltage in mV */
-	uint16_t acpi_bat1_design_v;
-	/* [215/D7] Battery A pmax_ value */
-	uint16_t acpi_bat0_pmax;
-	/* [217/D9] Battery pmax_ value low byte */
-	uint16_t acpi_bat1_pmax;
-	/* [219/DB] Battery thresh hold */
-	uint8_t batt_threshold;
-	/* [220/DC] Batt trip point byte L for _BTP */
-	uint16_t batt_trip_point;
-	/* [222/DE] */
-	uint8_t kb_bklt_pwm_duty;
+	/* [202/CA] controlled led index */
+	uint8_t acpi_led_idx;
+	/* [203/CB] led value low */
+	uint16_t acpi_led_val_l;
+	/* [205/CD] led value high */
+	uint16_t acpi_led_val_h;
+	/* [207/CF] led brightness */
+	uint8_t acpi_led_brightness[16];
 	/* [223/DF] Battery charge rate value */
 	uint16_t batt_chrg_lmt;
 	/* [225/E1] Thermistors */
@@ -295,7 +291,7 @@ struct acpi_tbl {
 	/* [231/E7] */
 	uint8_t cas_hotkey;
 	/* [232/E8] */
-	uint8_t acpi_pmic_rw;
+	uint8_t acpi_host_gpio;
 	/* [233/E9] */
 	uint8_t fast_charge_capable;
 	/* [234/EA] USB-C control */

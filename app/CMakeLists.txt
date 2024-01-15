@@ -6,16 +6,20 @@ target_sources(app
     )
 
 include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/peripheral_management)
+include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/vrtt)
 include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/power_sequencing)
 include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/dnx)
 include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/power_management)
 include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/smchost)
-include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/thermal_management)
 include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/debug)
 include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/kbchost)
 include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/saf)
 include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/soc_debug_awareness)
+include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/rstbtn)
+include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/leds)
+include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/gpio)
 
+include_directories(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/app/thermal_management_v2)
 target_sources_ifdef(CONFIG_PERIPHERAL_MANAGEMENT app
     PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/peripheral_management/periphmgmt.c
@@ -30,16 +34,21 @@ target_sources_ifdef(CONFIG_PWRMGMT app
     ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/pwrplane.c
     ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/dswmode.c
     ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/deepsx.c
-    ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/pseudog3.c
     ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/pmc.c
     ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/pwrseq_utils.c
     PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/pwrplane.h
     ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/dswmode.h
     ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/deepsx.h
-    ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/pseudog3.h
     ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/pmc.h
     ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/pwrseq_utils.h
+    )
+
+target_sources_ifdef(CONFIG_PWRMGMT_PG3_EXIT_WAKE_FROM_SX app
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/pseudog3.c
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/power_sequencing/pseudog3.h
     )
 
 target_sources_ifdef(CONFIG_DNX_SUPPORT app
@@ -85,6 +94,30 @@ target_sources_ifdef(CONFIG_THERMAL_MANAGEMENT app
     ${CMAKE_CURRENT_LIST_DIR}/thermal_management/thermalmgmt.h
     )
 
+target_sources_ifdef(CONFIG_THERMAL_MANAGEMENT_V2 app
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/thermal_management_v2/thermalmgmt.c
+    ${CMAKE_CURRENT_LIST_DIR}/smchost/smchost_thermal.c
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/thermal_management_v2/thermalmgmt.h
+    )
+
+target_sources_ifdef(CONFIG_LED_MANAGEMENT app
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/leds/ledmgmt.c
+    ${CMAKE_CURRENT_LIST_DIR}/smchost/smchost_led.c
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/leds/ledmgmt.h
+    )
+
+target_sources_ifdef(CONFIG_GPIO_MANAGEMENT app
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/gpio/gpiomgmt.c
+    ${CMAKE_CURRENT_LIST_DIR}/smchost/smchost_gpio.c
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/gpio/gpiomgmt.h
+    )
+
 target_sources_ifdef(CONFIG_POSTCODE_MANAGEMENT app
     PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/debug/postcodemgmt.c
@@ -113,6 +146,34 @@ target_sources_ifdef(CONFIG_SAF_SPI_WINBOND app
     ${CMAKE_CURRENT_LIST_DIR}/saf/saf_spi_winbond.c
     PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/saf/saf_spi_winbond.h
+    )
+
+target_sources_ifdef(CONFIG_VRTT_TESTING app
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/vrtt/vrtt.c
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/vrtt/vrtt.h
+    )
+
+target_sources_ifdef(CONFIG_RESET_BUTTON app
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/rstbtn/rstbutton.c
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/rstbtn/rstbutton.h
+    )
+
+target_sources_ifdef(CONFIG_LED_MANAGEMENT app
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/leds/ledmgmt.c
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/leds/ledmgmt.h
+    )
+
+target_sources_ifdef(CONFIG_GPIO_MANAGEMENT app
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/gpio/gpiomgmt.c
+    PUBLIC
+    ${CMAKE_CURRENT_LIST_DIR}/gpio/gpiomgmt.h
     )
 
 target_include_directories(app

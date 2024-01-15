@@ -16,7 +16,16 @@ enum adc_ch_num {
 	ADC_CH_05,
 	ADC_CH_06,
 	ADC_CH_07,
-
+#if CONFIG_SOC_MEC172X_NLJ
+	ADC_CH_08,
+	ADC_CH_09,
+	ADC_CH_10,
+	ADC_CH_11,
+	ADC_CH_12,
+	ADC_CH_13,
+	ADC_CH_14,
+	ADC_CH_15,
+#endif
 	ADC_CH_TOTAL
 };
 
@@ -29,7 +38,7 @@ extern int16_t adc_temp_val[ADC_CH_TOTAL];
  *
  * @return 0 if success, otherwise error code.
  */
-int thermal_sensors_init(uint8_t adc_channel_bits);
+int thermal_sensors_init(uint32_t adc_channel_bits);
 
 
 /**

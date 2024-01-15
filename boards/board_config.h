@@ -22,13 +22,15 @@ extern uint8_t boot_mode_maf;
 #include "adl_mec1501.h"
 #elif defined(CONFIG_BOARD_MEC1501_ADL_P)
 #include "adl_p_mec1501.h"
+#elif defined(CONFIG_BOARD_MEC172X_AZBEACH)
+#include "azbeach_mec172x.h"
 #else
 #error "Platform not supported"
 #endif /* CONFIG_BOARD_MEC1501MODULAR_ASSY6885 */
 
 #endif /* CONFIG_SOC_FAMILY_MEC */
 
-#ifdef CONFIG_THERMAL_MANAGEMENT
+#if defined(CONFIG_THERMAL_MANAGEMENT) || defined(CONFIG_THERMAL_MANAGEMENT_V2)
 #include "thermalmgmt.h"
 #include "board_thermal.h"
 #endif

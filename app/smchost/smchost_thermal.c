@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 #include "board.h"
 #include "board_config.h"
 #include "smc.h"
@@ -53,7 +53,7 @@ static void update_pwm(void)
 {
 #ifndef CONFIG_THERMAL_FAN_OVERRIDE
 		host_update_fan_speed(g_acpi_tbl.acpi_fan_idx,
-				 g_acpi_tbl.acpi_pwm_end_val);
+				 (g_acpi_tbl.acpi_pwm_init_val << 8) | g_acpi_tbl.acpi_pwm_end_val);
 #endif
 }
 
@@ -61,7 +61,12 @@ static void update_pwm_with_override(uint8_t speed)
 {
 #ifndef CONFIG_THERMAL_FAN_OVERRIDE
 		host_set_bios_fan_override(speed ? 1 : 0, speed);
+#if 1
+		host_update_fan_speed(FAN_LEFT, speed);
+		host_update_fan_speed(FAN_RIGHT, speed);
+#else
 		host_update_fan_speed(FAN_CPU, speed);
+#endif
 #endif
 }
 

@@ -5,10 +5,9 @@
  */
 
 #include <errno.h>
-#include <kernel.h>
-#include <zephyr.h>
-#include <device.h>
-#include <logging/log.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/logging/log.h>
 #include "pwrplane.h"
 #include "espioob_mngr.h"
 #include "postcodemgmt.h"
@@ -16,10 +15,15 @@
 #include "periphmgmt.h"
 #include "kbchost.h"
 #include "task_handler.h"
-#ifdef CONFIG_THERMAL_MANAGEMENT
+#if defined(CONFIG_THERMAL_MANAGEMENT) || defined(CONFIG_THERMAL_MANAGEMENT_V2)
 #include "thermalmgmt.h"
 #endif
-
+#ifdef CONFIG_LED_MANAGEMENT
+#include "ledmgmt.h"
+#endif
+#ifdef CONFIG_GPIO_MANAGEMENT
+#include "gpiomgmt.h"
+#endif
 LOG_MODULE_DECLARE(pwrmgmt, CONFIG_PWRMGT_LOG_LEVEL);
 
 #define EC_TASK_STACK_SIZE	1024
@@ -33,7 +37,7 @@ LOG_MODULE_DECLARE(pwrmgmt, CONFIG_PWRMGT_LOG_LEVEL);
 
 const uint32_t periph_thrd_period = 1;
 const uint32_t pwrseq_thrd_period = 10;
-const uint32_t smchost_thrd_period = 10;
+const uint32_t smchost_thrd_period = 1; //10;
 
 #if defined(CONFIG_ESPI_PERIPHERAL_8042_KBC) && \
 	defined(CONFIG_PS2_KEYBOARD_AND_MOUSE) || defined(CONFIG_KSCAN_EC)
@@ -66,13 +70,32 @@ K_THREAD_DEFINE(oobmngr_thrd_id, EC_TASK_STACK_SIZE, oobmngr_thread,
 		K_INHERIT_PERMS, EC_WAIT_FOREVER);
 
 K_THREAD_DEFINE(smchost_thrd_id, EC_TASK_STACK_SIZE, smchost_thread,
-		&smchost_thrd_period, NULL, NULL, EC_TASK_PRIORITY,
+		&smchost_thrd_period, NULL, NULL, EC_TASK_SMC_PRIORITY,
 		K_INHERIT_PERMS, EC_WAIT_FOREVER);
 
-#ifdef CONFIG_THERMAL_MANAGEMENT
+#if defined(CONFIG_THERMAL_MANAGEMENT) || defined(CONFIG_THERMAL_MANAGEMENT_V2)
 const uint32_t thermal_thrd_period = 250;
 K_THREAD_DEFINE(thermal_thrd_id, EC_TASK_STACK_SIZE, thermalmgmt_thread,
 		&thermal_thrd_period, NULL, NULL, EC_TASK_PRIORITY,
+		K_INHERIT_PERMS, EC_WAIT_FOREVER);
+#endif
+#ifdef CONFIG_LED_MANAGEMENT
+const uint32_t led_thrd_period = 5;
+K_THREAD_DEFINE(led_thrd_id, EC_TASK_STACK_SIZE, ledmgmt_thread,
+		&led_thrd_period, NULL, NULL, EC_TASK_PRIORITY,
+		K_INHERIT_PERMS, EC_WAIT_FOREVER);
+#ifdef CONFIG_LED_MANAGEMENT_POST
+const uint32_t led_thrd_post_period = 2000 ;
+K_THREAD_DEFINE(led_thrd_post_id, EC_TASK_STACK_SIZE, ledmgmt_post_thread,
+		&led_thrd_post_period, NULL, NULL, EC_TASK_PRIORITY,
+		K_INHERIT_PERMS, EC_WAIT_FOREVER);
+#endif
+#endif
+
+#ifdef CONFIG_GPIO_MANAGEMENT
+const uint32_t gpio_thrd_period = 1000;
+K_THREAD_DEFINE(gpio_thrd_id, EC_TASK_STACK_SIZE, gpiomgmt_thread,
+		&gpio_thrd_period, NULL, NULL, EC_TASK_PRIORITY,
 		K_INHERIT_PERMS, EC_WAIT_FOREVER);
 #endif
 
@@ -111,11 +134,24 @@ static struct task_info tasks[] = {
 	{ .thread_id = smchost_thrd_id, .can_suspend = false,
 	  .tagname = "SMC" },
 
-#ifdef CONFIG_THERMAL_MANAGEMENT
+#if defined(CONFIG_THERMAL_MANAGEMENT) || defined(CONFIG_THERMAL_MANAGEMENT_V2)
 	{ .thread_id = thermal_thrd_id, .can_suspend = false,
 	  .tagname = THRML_MGMT_TASK_NAME },
 #endif
 
+#ifdef CONFIG_LED_MANAGEMENT
+	{ .thread_id = led_thrd_id, .can_suspend = false,
+	  .tagname = "LEDS" },
+#ifdef CONFIG_LED_MANAGEMENT_POST
+	{ .thread_id = led_thrd_post_id, .can_suspend = false,
+	  .tagname = "LEDS_POST" },
+#endif
+#endif
+
+#ifdef CONFIG_GPIO_MANAGEMENT
+	{ .thread_id = gpio_thrd_id, .can_suspend = false,
+	  .tagname = "GPIOS" },
+#endif
 };
 
 void start_all_tasks(void)

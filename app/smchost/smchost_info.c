@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 #include "board.h"
 #include "board_config.h"
 #include "smc.h"
@@ -18,6 +18,7 @@
 LOG_MODULE_DECLARE(smchost, CONFIG_SMCHOST_LOG_LEVEL);
 
 static struct acpi_hid_btn_sci btn_ctrl;
+static uint8_t rst_btn_ctrl;
 
 uint8_t check_btn_sci_sts(uint8_t btn_sci_en_dis)
 {
@@ -39,6 +40,9 @@ uint8_t check_btn_sci_sts(uint8_t btn_sci_en_dis)
 	case HID_BTN_SCI_ROT_LOCK:
 		ret = btn_ctrl.rot_lock_en_dis;
 		break;
+	case HID_BTN_SCI_RST:
+		ret = rst_btn_ctrl;
+		LOG_INF("%s: rst_btn_ctrl = 0x%x", __func__, ret);
 	default:
 		break;
 	}
@@ -49,6 +53,11 @@ uint8_t check_btn_sci_sts(uint8_t btn_sci_en_dis)
 static void btn_sci_cntrl(void)
 {
 	btn_ctrl = g_acpi_tbl.acpi_btn_cntrl;
+}
+
+static void rstbtn_sci_cntrl(void)
+{
+	rst_btn_ctrl = g_acpi_tbl.hw_en.rst_btn_en;
 }
 
 #ifdef CONFIG_DEPRECATED_SMCHOST_CMD
@@ -99,7 +108,7 @@ static void smc_mode(void)
 		res[SMC_CAPS_INDEX] |= BIT(ACPI_MODE);
 	}
 
-#ifdef CONFIG_THERMAL_MANAGEMENT
+#if defined(CONFIG_THERMAL_MANAGEMENT) || defined(CONFIG_THERMAL_MANAGEMENT_V2)
 	if (peci_access_mode == PECI_OVER_ESPI_MODE) {
 		res[SMC_CAPS_INDEX] |= BIT(PECI_ACCESS_MODE_POS);
 	}
@@ -121,7 +130,7 @@ static void smc_mode(void)
 static void get_switch_status(void)
 {
 	uint8_t sw_status = 0;
-
+#if !CONFIG_EC_ONBOARD_SWITCHES_DISABLE
 	WRITE_BIT(sw_status, SWITCH_STATUS_VIRTUAL_DOCK_POS,
 		  gpio_read_pin(VIRTUAL_DOCK));
 	WRITE_BIT(sw_status, SWITCH_STATUS_AC_POWER_POS,
@@ -132,7 +141,7 @@ static void get_switch_status(void)
 		  gpio_read_pin(VIRTUAL_BAT));
 	WRITE_BIT(sw_status, SWITCH_STATUS_LEGACY_LID,
 		  gpio_read_pin(SMC_LID));
-
+#endif
 	send_to_host(&sw_status, 1);
 }
 
@@ -185,6 +194,10 @@ void smchost_cmd_info_handler(uint8_t command)
 		break;
 	case SMCHOST_HID_BTN_SCI_CONTROL:
 		btn_sci_cntrl();
+		break;
+	case SMCHOST_HID_RST_BTN_SCI_CONTROL:
+		LOG_INF("RST_BTN_SCI_CONTROL received");
+		rstbtn_sci_cntrl();
 		break;
 	default:
 		LOG_WRN("%s: command 0x%X without handler", __func__, command);

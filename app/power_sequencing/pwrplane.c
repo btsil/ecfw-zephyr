@@ -5,10 +5,10 @@
  */
 
 #include <errno.h>
-#include <zephyr.h>
-#include <device.h>
-#include <drivers/espi.h>
-#include <logging/log.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/espi.h>
+#include <zephyr/logging/log.h>
 #include "gpio_ec.h"
 #include "espi_hub.h"
 #include "espioob_mngr.h"
@@ -33,7 +33,12 @@
 #include "pwrseq_timeouts.h"
 #include "errcodes.h"
 #include "vci.h"
+#ifdef CONFIG_THERMAL_MANAGEMENT
 #include "fan.h"
+#endif
+#ifdef CONFIG_THERMAL_MANAGEMENT_V2
+#include "rpmfan.h"
+#endif
 #include "kbchost.h"
 #include "task_handler.h"
 #include "softstrap.h"
@@ -41,6 +46,7 @@
 #ifdef CONFIG_DNX_SUPPORT
 #include "dnx.h"
 #endif
+#include "vrtt.h"
 
 LOG_MODULE_REGISTER(pwrmgmt, CONFIG_PWRMGT_LOG_LEVEL);
 
@@ -145,7 +151,8 @@ static void pwrseq_slp_handler(uint32_t signal, uint32_t status)
 				next_state = SYSTEM_S3_STATE;
 			} else if (signal == ESPI_VWIRE_SIGNAL_SLP_S4) {
 				LOG_DBG("SLP S4 asserted");
-				next_state = SYSTEM_S4_STATE;
+		//		if (next_state != SYSTEM_S5_STATE) 
+					next_state = SYSTEM_S4_STATE;
 			} else if (signal == ESPI_VWIRE_SIGNAL_SLP_S5) {
 				LOG_DBG("SLP S5 asserted");
 				next_state = SYSTEM_S5_STATE;
@@ -344,7 +351,7 @@ static inline int pwrseq_task_init(void)
 	gpio_write_pin(PM_PWRBTN, 1);
 
 	/* Disable VBAT powered VCI logic */
-	vci_disable();
+	//vci_disable();
 
 	ret = wait_for_pin(RSMRST_PWRGD,
 			   RSMRST_PWRDG_TIMEOUT, 1);
@@ -367,6 +374,21 @@ static inline int pwrseq_task_init(void)
 			pwrseq_error(ERR_ESPIRESET);
 			return ret;
 		}
+#if CONFIG_BOARD_MEC172X_AZBEACH
+	} else if (espihub_boot_mode() == FLASH_BOOT_MODE_OWN) {
+		/* be aware that pvt flash boot mode is used in both VRTT test
+		 * and early board debug
+		 */
+		LOG_DBG("PM_RSMRST_PVT_BOOT");
+		ret = gpio_write_pin(PM_RSMRST, 1);
+		if (ret) {
+			LOG_ERR("Failed to write PM_RSMRST");
+			return ret;
+		}
+#if CONFIG_VRTT_TESTING
+		vrtt_test_init();
+#endif
+#endif
 	} else {
 		LOG_DBG("PM_RSMRST_G3SAF_P");
 		ret = gpio_write_pin(PM_RSMRST, 1);
@@ -412,50 +434,142 @@ static inline int pwrseq_task_init(void)
 	return ret;
 }
 
+static bool pwrseq_handle_transition_to_s0(void)
+{
+	bool valid_transition = false;
+	int ret;
+
+	switch (current_state) {
+	case SYSTEM_G3_STATE: /* G3 -> S0 */
+	case SYSTEM_S5_STATE: /* S5 -> S0 */
+	case SYSTEM_S4_STATE: /* S4 -> S0 */
+		ret = check_slp_signals();
+		if (ret) {
+			LOG_ERR("SLP signal timeout error");
+			break;
+		}
+		ret = power_on();
+		if (ret) {
+			LOG_ERR("power_on() error");
+			break;
+		}
+		valid_transition = true;
+		break;
+	case SYSTEM_S3_STATE: /* S3 -> S0 */
+		ret = resume();
+		if (ret) {
+			LOG_ERR("resume() error");
+			break;
+		}
+		valid_transition = true;
+		break;
+	case SYSTEM_S0_STATE: /* S0 -> S0 */
+	default:
+		/* No action */
+		break;
+	}
+
+	return valid_transition;
+}
+
+static bool pwrseq_handle_transition_to_s3(void)
+{
+	bool valid_transition = false;
+
+	switch (current_state) {
+	case SYSTEM_S0_STATE: /* S0 -> S3 */
+		suspend();
+		valid_transition = true;
+	case SYSTEM_G3_STATE: /* G3 -> S3 */
+	case SYSTEM_S5_STATE: /* S5 -> S3 */
+	case SYSTEM_S4_STATE: /* S4 -> S3 */
+		/* valid transition with no action */
+		valid_transition = true;
+		break;
+	case SYSTEM_S3_STATE: /* S3 -> S3 */
+	default:
+		break;
+	}
+
+	return valid_transition;
+}
+
+static bool pwrseq_handle_transition_to_s4(void)
+{
+	bool valid_transition = false;
+
+	switch (current_state) {
+	case SYSTEM_S3_STATE: /* S3 -> S4 */
+	case SYSTEM_S0_STATE: /* S0 -> S4 */
+		power_off();
+		valid_transition = true;
+		break;
+	case SYSTEM_G3_STATE: /* G3 -> S4 */
+	case SYSTEM_S5_STATE: /* S5 -> S4 */
+		/* valid transition with no action */
+		valid_transition = true;
+		break;
+	case SYSTEM_S4_STATE: /* S4 -> S4 */
+	default:
+		break;
+	}
+
+	return valid_transition;
+}
+
+static bool pwrseq_handle_transition_to_s5(void)
+{
+	bool valid_transition = false;
+
+	switch (current_state) {
+	case SYSTEM_S3_STATE: /* S3 -> S5 */
+	case SYSTEM_S0_STATE: /* S0 -> S5 */
+		power_off();
+		valid_transition = true;
+		break;
+	case SYSTEM_G3_STATE: /* G3 -> S5 */
+	case SYSTEM_S4_STATE: /* S4 -> S5 */
+		/* valid transition with no action */
+		valid_transition = true;
+		break;
+	case SYSTEM_S5_STATE: /* S5 -> S5 */
+	default:
+		/* No action */
+		break;
+	}
+	return valid_transition;
+}
+
 static void pwrseq_update(void)
 {
 	bool valid_sx_transition = false;
 
 	switch (next_state) {
 	case SYSTEM_S0_STATE:
-		check_slp_signals();
-		if (current_state == SYSTEM_G3_STATE ||
-		    current_state == SYSTEM_S5_STATE) {
-			if (!power_on()) {
-				valid_sx_transition = true;
-			}
-		} else {
-			if (!resume()) {
-				valid_sx_transition = true;
-			}
-		}
+		valid_sx_transition = pwrseq_handle_transition_to_s0();
 		break;
 	case SYSTEM_S3_STATE:
-		if (current_state == SYSTEM_S0_STATE) {
-			suspend();
-			valid_sx_transition = true;
-		}
+		valid_sx_transition = pwrseq_handle_transition_to_s3();
 		break;
 	case SYSTEM_S4_STATE:
+		valid_sx_transition = pwrseq_handle_transition_to_s4();
+		break;
 	case SYSTEM_S5_STATE:
-		if (current_state == SYSTEM_S0_STATE) {
-			LOG_DBG("Calling power_off");
-			power_off();
-			valid_sx_transition = true;
-		}
+		valid_sx_transition = pwrseq_handle_transition_to_s5();
 		break;
 	default:
-		LOG_ERR("Unsupported next state: %d", next_state);
-		/* Do not transition to invalid state,
-		 * stay in current valid role.
-		 */
-		next_state = current_state;
 		break;
 	}
 
 	if (valid_sx_transition) {
 		LOG_INF("System transition %d->%d", current_state, next_state);
 		current_state = next_state;
+	} else {
+		LOG_ERR("Unsupported next state: %d", next_state);
+		/* Do not transition to invalid state,
+		 * stay in current valid role.
+		 */
+		next_state = current_state;
 	}
 }
 
@@ -550,6 +664,12 @@ void pwrseq_thread(void *p1, void *p2, void *p3)
 			/* Indicate power button request has been processed */
 			g_pwrflags.turn_pwr_off = 0;
 		}
+
+		if (current_state == SYSTEM_G3_STATE &&
+		    	next_state == SYSTEM_G3_STATE &&
+			level)
+			next_state = SYSTEM_S5_STATE;
+
 		/* DeepSx is sub-state for S4/S5 */
 		if (dsw_enabled() &&
 		   ((pwrseq_system_state() == SYSTEM_S4_STATE) ||
@@ -560,11 +680,16 @@ void pwrseq_thread(void *p1, void *p2, void *p3)
 		/* Allow system to resume/boot after previous failure S4/S5
 		 * during power sequencing
 		 */
+#if 0
 		if ((next_state != current_state) &&
 		    ((current_state == SYSTEM_S4_STATE) ||
 		     (current_state == SYSTEM_S5_STATE) || (!pwrseq_failure))) {
 			pwrseq_update();
 		}
+#else
+		if ((next_state != current_state) && (!pwrseq_failure))
+			pwrseq_update();
+#endif
 
 		/* Update EEPROM if required */
 		dsw_save_mode();
@@ -578,7 +703,9 @@ void pwrseq_thread(void *p1, void *p2, void *p3)
 		 */
 		oob_rx_cb_handler();
 #endif
+#ifdef CONFIG_PWRMGMT_PG3_EXIT_WAKE_FROM_SX
 		manage_pseudog3();
+#endif
 	}
 }
 
@@ -597,8 +724,10 @@ void therm_shutdown(void)
 			/* Rotate fan and toggle leds until pwr btn pressed */
 			break;
 		}
-
-		fan_set_duty_cycle(FAN_CPU, 50);
+#if 0
+		fan_set_duty_cycle(FAN_LEFT, 50);
+		fan_set_duty_cycle(FAN_RIGHT, 50);
+#endif
 
 		/* EC initiated shutdown is indicated by flashing of NUM and
 		 * CAPS lock LEDs alternatively.
@@ -642,15 +771,20 @@ static void power_off(void)
 	board_suspend();
 
 	LOG_DBG("Shutting down %d", level);
+#ifdef CONFIG_BOARD_MEC172X_AZBEACH
+//	gpio_write_pin(EC_PWRBTN_LED, HIGH);
+//	fan_set_duty_cycle(FAN_LEFT, 0);
+//	fan_set_duty_cycle(FAN_RIGHT, 0);
+#else
+	gpio_write_pin(EC_PWRBTN_LED, LOW);
+#endif
 	do {
 		level = gpio_read_pin(PWRBTN_EC_IN_N);
 	} while (!level);
-
 #ifdef CONFIG_POSTCODE_MANAGEMENT
 	port80_display_off();
 #endif
 
-	gpio_write_pin(EC_PWRBTN_LED, LOW);
 	LOG_DBG("Power off complete");
 }
 
@@ -682,7 +816,6 @@ static int power_on(void)
 		LOG_ERR("Unable to initialize %d ", gpio_get_pin(PM_RSMRST));
 		return ret;
 	}
-
 #ifdef CONFIG_POSTCODE_MANAGEMENT
 	port80_display_on();
 #endif
@@ -714,6 +847,14 @@ static int power_on(void)
 
 	LOG_DBG("ALL_SYS_PWRGD is HIGH");
 	k_busy_wait(VR_ON_RAMP_DELAY_US);
+
+#if CONFIG_BOARD_MEC172X_AZBEACH
+	LOG_DBG("Set PS_ON_UC");
+	ret = gpio_write_pin(PS_ON_OUT, 1);
+	if (ret) {
+		LOG_ERR("Failed to driver PS_ON_OUT");
+	}
+#endif
 
 #ifdef VCCST_PWRGD
 	ret = gpio_write_pin(VCCST_PWRGD, 1);
@@ -749,8 +890,11 @@ static int power_on(void)
 		pwrseq_error(ERR_PLT_RST);
 		return ret;
 	}
-
+#ifdef CONFIG_BOARD_MEC172X_AZBEACH
+	gpio_write_pin(EC_PWRBTN_LED, LOW);
+#else
 	gpio_write_pin(EC_PWRBTN_LED, HIGH);
+#endif
 
 #ifdef CONFIG_ESPI_PERIPHERAL_8042_KBC
 	kbc_enable_interface();

@@ -4,8 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <logging/log.h>
-#include <drivers/espi.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/drivers/espi.h>
 #include "espi_hub.h"
 #include "pwrseq_utils.h"
 #include "board_config.h"
@@ -100,6 +101,11 @@ enum boot_config_mode espihub_boot_mode(void)
 bool espihub_reset_status(void)
 {
 	return hub.espi_rst_sts;
+}
+
+void espihub_set_boot_mode(enum boot_config_mode boot_mode)
+{
+	hub.spi_boot_mode = boot_mode;
 }
 
 bool espihub_dnx_status(void)
@@ -368,9 +374,17 @@ int espihub_init(void)
 #endif
 	};
 
+#if 0
 	espi_dev = device_get_binding(ESPI_0);
+#else
+	espi_dev = DEVICE_DT_GET(ESPI_0);
+#endif
 	if (!espi_dev) {
+#if 0
 		LOG_ERR("%s not found", ESPI_0);
+#else
+		LOG_ERR("ESPI not found");
+#endif
 		return -ENODEV;
 	}
 

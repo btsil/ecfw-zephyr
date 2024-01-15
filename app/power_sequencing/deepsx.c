@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <zephyr.h>
-#include <device.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
 #include "gpio_ec.h"
-#include <drivers/espi.h>
+#include <zephyr/drivers/espi.h>
 #include "board.h"
 #include "board_config.h"
 #include "deepsx.h"
@@ -18,8 +18,8 @@
 #include "pwrplane.h"
 #include "pwrbtnmgmt.h"
 #include "pwrseq_timeouts.h"
-#include <logging/log.h>
-LOG_MODULE_REGISTER(pwrmgmt, CONFIG_PWRMGMT_DEEPSX_LOG_LEVEL);
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(pwrmgmt_deepsx, CONFIG_PWRMGMT_DEEPSX_LOG_LEVEL);
 
 /* Delay to wait for SUS_WARN after PMIC change */
 #define DEEPSX_SUS_WARN_DELAY      20
@@ -387,7 +387,7 @@ void deep_sx_enter(void)
 	if (espihub_reset_status() && !sus_wrn) {
 		gpio_write_pin(PM_DS3, 1);
 
-		vci_enable();
+// XXX JJD		vci_enable();
 
 		ret = ack_deep_sleep_transition(SUS_WRN_LOW);
 		if (ret) {
