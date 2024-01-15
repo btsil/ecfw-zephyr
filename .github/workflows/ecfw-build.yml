@@ -18,8 +18,7 @@ jobs:
       with:
         path: ecfw-zephyr # ref: mec172x_azbeach_zephyr_v10
 
-# echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
-# echo "${{ env.INSTALLATION_ACCESS_TOKEN }}"
+
 
     - name: Generate installation access token
       env: 
@@ -30,7 +29,9 @@ jobs:
           echo "available=true"
           which env
           echo $IA_SECRETS
-          INSTALLATION_ACCESS_TOKEN=$(python3 decode_token.py) 
+          INSTALLATION_ACCESS_TOKEN=$(python3 decode_token.py)
+          echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
+          echo "${{ env.INSTALLATION_ACCESS_TOKEN }}" 
         else
           echo "$IA_SECRETS"
           echo "available=false"
@@ -41,7 +42,7 @@ jobs:
       with:
         repository: btsil/zephyr 
         ref: mec172x_azbeach_support
-        token: $INSTALLATION_ACCESS_TOKEN
+        token: ${{ env.INSTALLATION_ACCESS_TOKEN }}
         path: ecfwwork/zephyr_fork
 
     - name: Install kitware
