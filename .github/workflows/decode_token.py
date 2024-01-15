@@ -4,7 +4,6 @@ import sys
 import time
 import jwt
 import requests
-import os
 
 def decode_token(token):
     decoded_text = base64.b64decode(token).decode('utf-8')
