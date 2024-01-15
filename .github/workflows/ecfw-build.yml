@@ -86,6 +86,8 @@ jobs:
         echo "Initializng west ecfw-zephyr"
         cd $GITHUB_WORKSPACE
         west init -l
+        west list
+        west update
         echo "cd workspace, build"
         cd $GITHUB_WORKSPACE/ecfwwork/zephyr_fork
         pwd
