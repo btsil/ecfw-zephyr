@@ -83,8 +83,8 @@ jobs:
         tar xf zephyr-sdk-0.16.4_linux-x86_64.tar.xz
         cd zephyr-sdk-0.16.4
         ./setup.sh -h -c
-        echo "Initializng west"
-        cd $GITHUB_WORKSPACE/zephyrproject
+        echo "Initializng west ecfw-zephyr"
+        cd $GITHUB_WORKSPACE/ecfw-zephyr
         west init -l
 
     - name: Building the application...
