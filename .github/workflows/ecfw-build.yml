@@ -27,11 +27,10 @@ jobs:
         cd ecfw-zephyr
         if [ "$IA_SECRETS" != '' ]; then
           echo "available=true"
-          which env
-          echo $IA_SECRETS
           INSTALLATION_ACCESS_TOKEN=$(python3 decode_token.py)
           echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
           echo "${{ env.INSTALLATION_ACCESS_TOKEN }}" 
+          echo "got here"
         else
           echo "$IA_SECRETS"
           echo "available=false"
