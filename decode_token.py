@@ -10,6 +10,7 @@ def decode_token():
     #with open(token_file, 'r') as file:
         #encoded_text = file.read()
     token = os.environ['IA_SECRETS']
+    print(token)
     decoded_text = base64.b64decode(token).decode('utf-8')
     data = json.loads(decoded_text)
     APP_ID = data["str1"]
