@@ -6,10 +6,10 @@ import jwt
 import requests
 import os
 
-def decode_token():
+def decode_token(token):
     #with open(token_file, 'r') as file:
         #encoded_text = file.read()
-    token = os.environ['IA_SECRETS']
+
     print(token)
     decoded_text = base64.b64decode(token).decode('utf-8')
     data = json.loads(decoded_text)
@@ -37,5 +37,6 @@ def decode_token():
 
 
 if __name__ == "__main__":
-    access_token = decode_token()
+    token = os.environ['IA_SECRETS']
+    access_token = decode_token(token)
     print(access_token)
