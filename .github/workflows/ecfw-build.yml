@@ -84,7 +84,7 @@ jobs:
         cd zephyr-sdk-0.16.4
         ./setup.sh -h -c
         echo "Initializng west ecfw-zephyr"
-        cd $GITHUB_WORKSPACE/ecfw-zephyr
+        cd $GITHUB_WORKSPACE
         west init -l
 
     - name: Building the application...
