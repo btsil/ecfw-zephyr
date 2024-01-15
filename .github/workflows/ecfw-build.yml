@@ -45,7 +45,7 @@ jobs:
       with:
         repository: btsil/zephyr 
         ref: mec172x_azbeach_support
-        token: ${{ steps.ia_token.outputs.IA_TOKEN }}
+        token: ${{ secrets.IAT }}
         path: ecfwwork/zephyr_fork
 
     - name: Install kitware
