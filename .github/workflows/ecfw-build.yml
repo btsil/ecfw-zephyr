@@ -21,12 +21,11 @@ jobs:
     - name: Generate installation access token
       id: ia_token
       run: |
-        cd ecfw-zephyr
-        cd .github
+        cd ecfw-zephyr/.github/workflows
         ls
-        if [ "$IA_SECRETS" != '' ]; then
+        if [ "${{ secrets.IA_SECRETS }}" != '' ]; then
           echo "available=true"
-          echo IA_TOKEN=$(python3 .github/workflows/decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
+          echo IA_TOKEN=$(python3 decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
           echo "got here"
         else
           echo "$IA_SECRETS"
