@@ -90,7 +90,7 @@ jobs:
         cd $GITHUB_WORKSPACE/ecfwwork/zephyr_fork
         pwd
         ls
-        ./zephyr-env.sh
+        source zephyr-env.sh
         echo "cd workspace, build"
         cd $GITHUB_WORKSPACE
         pwd
