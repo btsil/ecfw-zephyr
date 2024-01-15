@@ -7,10 +7,6 @@ import requests
 import os
 
 def decode_token(token):
-    #with open(token_file, 'r') as file:
-        #encoded_text = file.read()
-
-    #print(token)
     decoded_text = base64.b64decode(token).decode('utf-8')
     data = json.loads(decoded_text)
     APP_ID = data["str1"]
@@ -35,9 +31,7 @@ def decode_token(token):
     INSTALLATION_ACCESS_TOKEN = response.json()['token']
     return INSTALLATION_ACCESS_TOKEN
 
-
 if __name__ == "__main__":
-    #token = os.environ['IA_SECRETS']
     token = sys.argv[1]
     access_token = decode_token(token)
     print(access_token)
