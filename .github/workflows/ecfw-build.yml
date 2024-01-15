@@ -23,14 +23,12 @@ jobs:
     - name: Generate installation access token
       env: 
         IA_SECRETS: ${{ secrets.IA_SECRETS }}
+      id: ia_token
       run: |
         cd ecfw-zephyr
         if [ "$IA_SECRETS" != '' ]; then
           echo "available=true"
-          INSTALLATION_ACCESS_TOKEN=$(python3 decode_token.py)
-          echo $INSTALLATION_ACCESS_TOKEN
-          echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
-          echo "${{ env.INSTALLATION_ACCESS_TOKEN }}" 
+          echo IA_TOKEN=$(python3 decode_token.py) >> $GITHUB_OUTPUT
           echo "got here"
         else
           echo "$IA_SECRETS"
@@ -42,7 +40,7 @@ jobs:
       with:
         repository: btsil/zephyr 
         ref: mec172x_azbeach_support
-        token: ${{ env.INSTALLATION_ACCESS_TOKEN }}
+        token: ${{ steps.ia_token.outputs.IA_TOKEN }}
         path: ecfwwork/zephyr_fork
 
     - name: Install kitware
