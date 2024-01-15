@@ -86,9 +86,6 @@ jobs:
         echo "Initializng west ecfw-zephyr"
         cd $GITHUB_WORKSPACE
         west init -l
-
-    - name: Building the application...
-      run: |
         cd $GITHUB_WORKSPACE/ecfwwork/zephyr_fork
         . zephyr-env.sh
         cd $GITHUB_WORKSPACE
