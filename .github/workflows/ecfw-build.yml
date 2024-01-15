@@ -17,18 +17,27 @@ jobs:
     - name: Installing source ecfw
       uses: actions/checkout@v2
       with:
-        path: # ref: mec172x_azbeach_zephyr_v1
+        path: ~/ # ref: mec172x_azbeach_zephyr_v1
 
     - name: Generate installation access token
       id: ia_token
       run: |
+        cd ~/
+        pwd
+        ls
+        cd ~/work/ecfw-zephyr/
+        ls
         cd ~/work/ecfw-zephyr/ecfw-zephyr/.github/workflows
         echo IA_TOKEN=$(python3 decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
         
+    - name: workspace dir
+      run: echo $GITHUB_WORKSPACE
+
     - name: Installing source zephyr
       uses: actions/checkout@v2
       with:
         repository: btsil/zephyr 
+        path: 
         token: "${{ steps.ia_token.outputs.IA_TOKEN }}"
 
     - name: check filesystem
