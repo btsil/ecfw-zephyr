@@ -14,29 +14,18 @@ jobs:
 
     steps:
     - name: Installing source ecfw
-      env:
-        GITHUB_WORKSPACE: /home/runner/work/blah
       uses: actions/checkout@v4
-      with:
-        path: side1 # ref: mec172x_azbeach_zephyr_v1
 
     - name: Generate installation access token
       id: ia_token
       run: |
         echo "workspace"
-        echo $GITHUB_WORKSPACE
-        echo "change to ~/"
-        cd ~/
+        cd $GITHUB_WORKSPACE
         pwd
         ls
-        echo "change to ~/work"
-        cd ~/work
+        echo "change to .github/workflows"
+        cd .github/workflows
         ls
-        echo "change to ~/work/ecfw-zephyr/ecfw-zephyr"
-        cd ~/work/ecfw-zephyr/ecfw-zephyr
-        ls
-        echo "change to ~/work/ecfw-zephyr/ecfw-zephyr"
-        cd ~/work/ecfw-zephyr/ecfw-zephyr/.github/workflows
         echo IA_TOKEN=$(python3 decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
         
     - name: workspace dir
@@ -46,7 +35,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: btsil/zephyr 
-        path: 
+        path: ecfwwork
         token: "${{ steps.ia_token.outputs.IA_TOKEN }}"
 
     - name: check filesystem
