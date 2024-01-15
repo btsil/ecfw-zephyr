@@ -91,5 +91,5 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/ecfwwork/zephyr_fork
         . zephyr-env.sh
-        cd $GITHUB_WORKSPACE/ecfw-zephyr
+        cd $GITHUB_WORKSPACE
         west build -c -p auto -b mec172x_azbeach
