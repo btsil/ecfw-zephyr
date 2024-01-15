@@ -34,6 +34,11 @@ jobs:
           echo "$IA_SECRETS"
           echo "available=false"
         fi
+
+    - name: Echo ia_token
+      run: | 
+        echo "echo token"  
+        echo "${{ steps.ia_token.outputs.IA_TOKEN }}"
         
     - name: Installing source zephyr
       uses: actions/checkout@v2
