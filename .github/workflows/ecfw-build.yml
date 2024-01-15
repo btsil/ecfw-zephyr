@@ -11,11 +11,12 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    env:
-      GITHUB_WORKSPACE: /home/runner/work/blah
+
     steps:
     - name: Installing source ecfw
-      uses: actions/checkout@v2
+      env:
+        GITHUB_WORKSPACE: /home/runner/work/blah
+      uses: actions/checkout@v4
       with:
         path: side1 # ref: mec172x_azbeach_zephyr_v1
 
@@ -42,7 +43,7 @@ jobs:
       run: echo $GITHUB_WORKSPACE
 
     - name: Installing source zephyr
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: btsil/zephyr 
         path: 
