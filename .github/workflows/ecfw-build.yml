@@ -22,8 +22,8 @@ jobs:
       id: ia_token
       run: |
         cd ecfw-zephyr
+        cd .github
         ls
-        ls .github
         if [ "$IA_SECRETS" != '' ]; then
           echo "available=true"
           echo IA_TOKEN=$(python3 .github/workflows/decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
