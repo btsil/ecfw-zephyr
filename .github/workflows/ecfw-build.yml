@@ -32,7 +32,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: btsil/zephyr 
-        path: ecfwwork
+        path: ecfwwork/zephyr_fork
         token: "${{ steps.ia_token.outputs.IA_TOKEN }}"
 
     - name: check filesystem
@@ -43,8 +43,7 @@ jobs:
 
     - name: Install kitware
       run: |
-        cd asf
-        pwd
+        cd $GITHUB_WORKSPACE
         echo "Install kitware"
         wget https://apt.kitware.com/kitware-archive.sh
         sudo bash kitware-archive.sh
@@ -65,21 +64,20 @@ jobs:
 
     - name: Installing Zephyr and Python dependencies
       run: |
-        if [ ! -d zephyrproject ]; then mkdir ~/zephyrproject; fi
+        if [ ! -d zephyrproject ]; then mkdir $GITHUB_WORKSPACE/zephyrproject; fi
         sudo apt install -y python3-venv
-        python3 -m venv ~/zephyrproject/.venv
-        . ~/zephyrproject/.venv/bin/activate
+        python3 -m venv $GITHUB_WORKSPACE/zephyrproject/.venv
+        . $GITHUB_WORKSPACE/zephyrproject/.venv/bin/activate
         pip install west
-        west init ~/zephyrproject
-        cd ~/zephyrproject
+        west init $GITHUB_WORKSPACE/zephyrproject
+        cd $GITHUB_WORKSPACE/zephyrproject
         west update
         west zephyr-export
-        pip install -r ~/zephyrproject/zephyr/scripts/requirements.txt
+        pip install -r $GITHUB_WORKSPACE/zephyrproject/zephyr/scripts/requirements.txt
 
     - name: Install Zephyr SDK
       run: |
-        cd ~
-        pwd
+        cd $GITHUB_WORKSPACE
         wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.4/zephyr-sdk-0.16.4_linux-x86_64.tar.xz
         wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.4/sha256.sum | shasum --check --ignore-missing
         tar xf zephyr-sdk-0.16.4_linux-x86_64.tar.xz
@@ -88,16 +86,11 @@ jobs:
 
     - name: Initializng west
       run: |
-        cd ~
-        pwd
-        ls
-        cd zephyr_fork
-        pwd
         west init -l
 
     - name: Building the application...
       run: |
-        cd ~/ecfwwork/zephyr_fork
+        cd $GITHUB_WORKSPACE/ecfwwork/zephyr_fork
         . zephyr-env.sh
-        cd ~/ecfw-zephyr
+        cd $GITHUB_WORKSPACE/ecfw-zephyr
         west build -c -p auto -b mec172x_azbeach
