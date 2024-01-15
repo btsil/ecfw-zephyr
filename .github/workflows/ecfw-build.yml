@@ -36,6 +36,10 @@ jobs:
         cd ~/work
         pwd
         ls
+        cd ~/work/ecfw-zephyr
+        ls
+        cd ~/work/zephyr
+        ls
 
     - name: Install kitware
       run: |
