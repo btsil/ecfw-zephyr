@@ -29,6 +29,9 @@ jobs:
         echo "change to ~/work/ecfw-zephyr/"
         cd ~/work/ecfw-zephyr/
         ls
+        echo "change to ~/work/ecfw-zephyr/"
+        cd ~/work/ecfw-zephyr/
+        ls
         echo "change to ~/work/ecfw-zephyr/ecfw-zephyr"
         cd ~/work/ecfw-zephyr/ecfw-zephyr/.github/workflows
         echo IA_TOKEN=$(python3 decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
