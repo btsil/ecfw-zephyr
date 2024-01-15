@@ -21,7 +21,7 @@ jobs:
     - name: Generate installation access token
       id: ia_token
       run: |
-        cd ~
+        cd ~/work
         pwd
         ls
         cd ecfw-zephyr/.github/workflows
