@@ -22,16 +22,9 @@ jobs:
       id: ia_token
       run: |
         cd ecfw-zephyr/.github/workflows
-        ls
-        if [ "${{ secrets.IA_SECRETS }}" != '' ]; then
-          echo "available=true"
-          echo IA_TOKEN=$(python3 decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
-          echo "got here"
-        else
-          echo "$IA_SECRETS"
-          echo "available=false"
-        fi
-
+        pwd
+        echo IA_TOKEN=$(python3 decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
+        
     - name: Installing source zephyr
       uses: actions/checkout@v2
       with:
@@ -41,6 +34,7 @@ jobs:
 
     - name: Install kitware
       run: |
+        pwd
         echo "Install kitware"
         wget https://apt.kitware.com/kitware-archive.sh
         sudo bash kitware-archive.sh
@@ -75,6 +69,7 @@ jobs:
     - name: Install Zephyr SDK
       run: |
         cd ~
+        pwd
         wget https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.4/zephyr-sdk-0.16.4_linux-x86_64.tar.xz
         wget -O - https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.4/sha256.sum | shasum --check --ignore-missing
         tar xf zephyr-sdk-0.16.4_linux-x86_64.tar.xz
@@ -84,8 +79,10 @@ jobs:
     - name: Initializng west
       run: |
         cd ~
+        pwd
         ls
         cd zephyr_fork
+        pwd
         west init -l
 
     - name: Building the application...
