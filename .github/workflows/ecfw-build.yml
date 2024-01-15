@@ -19,11 +19,11 @@ jobs:
         path: ecfw-zephyr # ref: mec172x_azbeach_zephyr_v10
 
     - name: Generate installation access token
-      env: 
-        IA_SECRETS: ${{ secrets.IA_SECRETS }}
       id: ia_token
       run: |
         cd ecfw-zephyr
+        ls
+        ls .github
         if [ "$IA_SECRETS" != '' ]; then
           echo "available=true"
           echo IA_TOKEN=$(python3 .github/workflows/decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
