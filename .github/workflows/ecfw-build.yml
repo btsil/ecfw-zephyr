@@ -16,11 +16,14 @@ jobs:
     - name: Installing source ecfw
       uses: actions/checkout@v2
       with:
-        path: ecfw-zephyr # ref: mec172x_azbeach_zephyr_v10
+        path: # ref: mec172x_azbeach_zephyr_v10
 
     - name: Generate installation access token
       id: ia_token
       run: |
+        cd ~
+        pwd
+        ls
         cd ecfw-zephyr/.github/workflows
         pwd
         echo IA_TOKEN=$(python3 decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
@@ -34,6 +37,7 @@ jobs:
 
     - name: Install kitware
       run: |
+        cd asf
         pwd
         echo "Install kitware"
         wget https://apt.kitware.com/kitware-archive.sh
