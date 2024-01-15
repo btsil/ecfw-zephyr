@@ -71,6 +71,8 @@ jobs:
         pip install west
         west init $GITHUB_WORKSPACE/zephyrproject
         cd $GITHUB_WORKSPACE/zephyrproject
+        echo "first time calling west - pwd"
+        pwd
         west update
         west zephyr-export
         pip install -r $GITHUB_WORKSPACE/zephyrproject/zephyr/scripts/requirements.txt
@@ -86,6 +88,7 @@ jobs:
 
     - name: Initializng west
       run: |
+        cd $GITHUB_WORKSPACE/zephyrproject
         west init -l
 
     - name: Building the application...
