@@ -86,7 +86,12 @@ jobs:
         echo "Initializng west ecfw-zephyr"
         cd $GITHUB_WORKSPACE
         west init -l
+        echo "cd workspace, build"
         cd $GITHUB_WORKSPACE/ecfwwork/zephyr_fork
-        . zephyr-env.sh
+        pwd
+        ls
+        ./zephyr-env.sh
+        echo "cd workspace, build"
         cd $GITHUB_WORKSPACE
+        pwd
         west build -c -p auto -b mec172x_azbeach
