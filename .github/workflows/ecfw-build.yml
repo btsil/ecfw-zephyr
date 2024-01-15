@@ -31,6 +31,7 @@ jobs:
         token: "${{ steps.ia_token.outputs.IA_TOKEN }}"
         path: ecfwwork/zephyr_fork
     - run: |
+        cd ~/work
         pwd
         ls
 
