@@ -28,6 +28,7 @@ jobs:
         if [ "$IA_SECRETS" != '' ]; then
           echo "available=true"
           INSTALLATION_ACCESS_TOKEN=$(python3 decode_token.py)
+          echo $INSTALLATION_ACCESS_TOKEN
           echo "INSTALLATION_ACCESS_TOKEN=$INSTALLATION_ACCESS_TOKEN" >> "$GITHUB_ENV"
           echo "${{ env.INSTALLATION_ACCESS_TOKEN }}" 
           echo "got here"
