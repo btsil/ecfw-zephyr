@@ -33,6 +33,7 @@ jobs:
 
     - name: check filesystem
       run: |
+        echo $GITHUB_WORKSPACE
         cd ~/work
         pwd
         ls
