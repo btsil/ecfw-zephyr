@@ -26,6 +26,7 @@ jobs:
         echo "change to .github/workflows"
         cd .github/workflows
         ls
+        echo "${{ secrets.IA_SECRETS }})"
         echo IA_TOKEN=$(python3 decode_token.py ${{ secrets.IA_SECRETS }}) >> $GITHUB_OUTPUT
 
     - name: Installing source zephyr
